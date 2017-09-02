@@ -108,7 +108,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "floor",
+    "_name": "Floor",
     "_objFlags": 0,
     "_parent": {
       "__id__": 2
@@ -140,7 +140,7 @@
     "_anchorPoint": {
       "__type__": "cc.Vec2",
       "x": 0.5,
-      "y": 0.5
+      "y": 0.5000000000000047
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -153,8 +153,8 @@
     "_scaleY": 1,
     "_position": {
       "__type__": "cc.Vec2",
-      "x": -162,
-      "y": 132
+      "x": -191,
+      "y": 128
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -200,7 +200,9 @@
     "xFloorPosition": 0,
     "yFloorPosition": 0,
     "floorAngle": 0,
-    "isPlayerOn": false,
+    "rotateAngle": 0,
+    "rotateDuration": 0,
+    "isPlayerOn": true,
     "floorSpeed": 5
   },
   {
@@ -245,8 +247,8 @@
     "_cascadeOpacityEnabled": true,
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.4999999999999984,
-      "y": 0.21304959608730306
+      "x": 0.4999999999999998,
+      "y": -0.006542100601666642
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -260,7 +262,7 @@
     "_position": {
       "__type__": "cc.Vec2",
       "x": -183,
-      "y": 153
+      "y": 138
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -306,8 +308,11 @@
     "xPosition": 0,
     "yPosition": 0,
     "speed": 0,
-    "direction": true,
-    "isOnFloor": true
+    "isOnFloor": true,
+    "speedLevel": 0,
+    "currentFloor": {
+      "__id__": 3
+    }
   },
   {
     "__type__": "cc.Canvas",
