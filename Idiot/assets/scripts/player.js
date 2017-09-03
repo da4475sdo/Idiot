@@ -6,6 +6,7 @@ cc.Class({
         yPosition:0,
         speed:10,
         isOnFloor:true,
+        baseSpeedLevel:1,
         speedLevel:0,
          // player node 当前所在的floor node
         currentFloor: {
@@ -31,44 +32,66 @@ cc.Class({
     },
 
     groupMove:function (distance){
-        var playerYMove=this.floorMove(),
+        var playerYMoveDirecition=this.floorMove(),
             _currentFloor=this.currentFloor.getComponent('floor');
-        this.playerMove(distance,playerYMove,_currentFloor.rotateAngle);
+        this.playerMove(distance,playerYMoveDirecition);
     },
 
-    playerMove:function (distance,playerYMove,_rotateAngle){
-        this.xPosition+=distance;
-        this.yPosition+=playerYMove;
+    playerMove:function (distance,playerYMoveDirecition){
+        //console.log(_floorAngle);
+        var _floorAngle=this.currentFloor.rotation;
+        this.xPosition+=(distance*Math.cos(Math.abs(_floorAngle)*0.0174533));
+        this.yPosition+=(!playerYMoveDirecition?distance*Math.sin(Math.abs(_floorAngle)*0.0174533):-(distance*Math.sin(Math.abs(_floorAngle)*0.0174533)));
         //根据角度更新速度等级
-        _rotateAngle*distance?this.speedLevel+=_rotateAngle/10:this.speedLevel-=_rotateAngle/10;
+        _floorAngle*distance?this.speedLevel=this.baseSpeedLevel+Math.abs(_floorAngle/10):this.speedLevel=this.baseSpeedLevel-Math.abs(_floorAngle/10);
     },
 
     floorMove:function (){
         var playerXPosition=this.xPosition,
             distanceFromCenter=playerXPosition-this.currentFloor.x,
-            playerYMove=0,
+            playerYMoveDirecition=true,
+            floorWidth=this.currentFloor.width,
             _currentFloor=this.currentFloor.getComponent('floor');
         //通过player在floor上的位置计算floor旋转的一定角度的时间间隔
-        _currentFloor.rotateDuration/=Math.abs(distanceFromCenter);
+        //_currentFloor.rotateDuration=Math.abs(distanceFromCenter)*2<=floorWidth?_currentFloor.baseRotateDuration-(Math.abs(distanceFromCenter)*2/floorWidth):_currentFloor.baseRotateDuration;
         //当player在floor的左半部分时，旋转角度为负
-        if(!distanceFromCenter){
-            _currentFloor.rotateAngle=-_currentFloor.rotateAngle;
+        console.log("distanceFromCenter: "+distanceFromCenter);
+        if(distanceFromCenter<-10){
+            _currentFloor.rotateAngle=-_currentFloor.baseRotateAngle;
+        }else if(distanceFromCenter>10){
+            _currentFloor.rotateAngle=Math.abs(_currentFloor.baseRotateAngle);
+        }else{
+            _currentFloor.rotateAngle=0;
         }
         //当floor上的player下降时
-        if(_currentFloor.rotateAngle*distanceFromCenter){
-            playerYMove=Math.abs(distanceFromCenter)*Math.sin(Math.abs(_currentFloor.rotateAngle)*0.0174533);
+        if(_currentFloor.floorAngle*distanceFromCenter>=0){
+            playerYMoveDirecition=true;
         }else{
-            playerYMove=-Math.abs(distanceFromCenter)*Math.sin(Math.abs(_currentFloor.rotateAngle)*0.0174533); 
+            playerYMoveDirecition=false; 
         }
-        //返回player的垂直移动距离
-        return playerYMove;
+        //返回player的垂直移动方向
+        return playerYMoveDirecition;
     },
 
     update (dt) {
         this.node.x=this.xPosition;
-        var _currentFloor=this.currentFloor._components[1];
-        var moveYPosition=new cc.moveTo(_currentFloor.rotateDuration, cc.p(this.xPosition, this.yPosition)).easing(cc.easeCubicActionIn());
-        var floorRotate=new cc.moveBy(_currentFloor.rotateDuration, _currentFloor.rotateAngle).easing(cc.easeCubicActionIn());
-        this.node.runAction(new cc.Spawn(moveYPosition,floorRotate));
+        this.node.y=this.yPosition;
+        // console.log("this.xPosition:   "+this.xPosition);
+        // console.log("this.yPosition:   "+this.yPosition);
+        var _currentFloor=this.currentFloor.getComponent('floor'),
+            moveYPosition=new cc.moveBy(0.2, cc.p(0, this.yPosition)),
+            floorRotate=new cc.RotateBy(0.2, _currentFloor.rotateAngle),
+            callback = cc.callFunc(this.getFloorAngle, this,_currentFloor),
+            _maxFloorAngle=_currentFloor.maxFloorAngle-_currentFloor.baseRotateAngle;
+        //this.node.runAction(moveYPosition);
+        if((_currentFloor.floorAngle<_maxFloorAngle&&_currentFloor.floorAngle>-_maxFloorAngle)
+        ||(_currentFloor.floorAngle*_currentFloor.rotateAngle<0)){
+            this.currentFloor.runAction(cc.sequence(floorRotate,callback));
+        }
+    },
+
+    getFloorAngle:function (currentFloor){
+        var _currentFloor=currentFloor.getComponent("floor");
+        _currentFloor.floorAngle=this.currentFloor.rotation;
     },
 });

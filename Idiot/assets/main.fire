@@ -139,13 +139,13 @@
     "_cascadeOpacityEnabled": true,
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 0.5000000000000047
+      "x": 0.5023203538539627,
+      "y": 1.3870381304577604
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 448,
-      "height": 12
+      "width": 446,
+      "height": 7
     },
     "_rotationX": 0,
     "_rotationY": 0,
@@ -154,7 +154,7 @@
     "_position": {
       "__type__": "cc.Vec2",
       "x": -191,
-      "y": 128
+      "y": 137
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -200,9 +200,12 @@
     "xFloorPosition": 0,
     "yFloorPosition": 0,
     "floorAngle": 0,
+    "maxFloorAngle": 60,
+    "baseRotateAngle": 8,
     "rotateAngle": 0,
-    "rotateDuration": 0,
-    "isPlayerOn": true,
+    "baseRotateDuration": 0.5,
+    "rotateDuration": 0.5,
+    "isPlayerOn": false,
     "floorSpeed": 5
   },
   {
@@ -255,14 +258,14 @@
       "width": 78,
       "height": 67
     },
-    "_rotationX": 0,
-    "_rotationY": 0,
-    "_scaleX": 1,
+    "_rotationX": 1,
+    "_rotationY": 1,
+    "_scaleX": 0.99,
     "_scaleY": 1,
     "_position": {
       "__type__": "cc.Vec2",
-      "x": -183,
-      "y": 138
+      "x": -191,
+      "y": 137
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -307,9 +310,10 @@
     "_enabled": true,
     "xPosition": 0,
     "yPosition": 0,
-    "speed": 0,
+    "speed": 1,
     "isOnFloor": true,
-    "speedLevel": 0,
+    "baseSpeedLevel": 1,
+    "speedLevel": 1,
     "currentFloor": {
       "__id__": 3
     }
