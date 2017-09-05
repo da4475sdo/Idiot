@@ -6,6 +6,7 @@ cc.Class({
         yPosition:0,
         speed:10,
         isOnFloor:true,
+        jumpLevel:0,
         baseSpeedLevel:1,
         speedLevel:0,
         //player距离的地板的高度
@@ -14,6 +15,8 @@ cc.Class({
         stopRange:10,
         //floor下降时，player下落移动时长
         moveYDuration:2,
+        //player下落的时长
+        fallDuration:10,
          // player node 当前所在的floor node
         currentFloor: {
             default: null,
@@ -34,8 +37,15 @@ cc.Class({
     onDeviceMotionEvent:function (event){
         //player移动的距离
         var deviceMotion=event.acc.x,
-            distance=deviceMotion*this.speed*this.speedLevel;
-        this.groupMove(distance);
+            distance=deviceMotion*this.speed*this.speedLevel,
+            playerToFloorCenterDis=Math.sqrt((this.node.x-this.currentFloor.x)*(this.node.x-this.currentFloor.x)
+            +(this.node.y-this.currentFloor.y)*(this.node.y-this.currentFloor.y));
+        //判断player是在floor上移动还是下落
+        if(playerToFloorCenterDis<(this.currentFloor.width+this.node.width)/2){
+            this.groupMove(distance);
+        }else{
+            this.isOnFloor&&this.playerFall(Math.abs(distance));
+        }
     },
 
     groupMove:function (distance){
@@ -59,8 +69,6 @@ cc.Class({
             playerYMoveDirecition=true,
             floorWidth=this.currentFloor.width,
             _currentFloor=this.currentFloor.getComponent('floor');
-        //通过player在floor上的位置计算floor旋转的一定角度的时间间隔
-        //_currentFloor.rotateDuration=Math.abs(distanceFromCenter)*2<=floorWidth?_currentFloor.baseRotateDuration-(Math.abs(distanceFromCenter)*2/floorWidth):_currentFloor.baseRotateDuration;
         //当player在floor的左半部分时，旋转角度为负
         if(distanceFromCenter<-this.stopRange){
             _currentFloor.rotateAngle=-_currentFloor.baseRotateAngle;
@@ -80,21 +88,25 @@ cc.Class({
     },
 
     update (dt) {
-        var _currentFloor=this.currentFloor.getComponent('floor'),
-            floorRotate=new cc.RotateBy(_currentFloor.rotateDuration, _currentFloor.rotateAngle),
-            callback = cc.callFunc(this.getFloorAngle, this,_currentFloor),
-            _maxFloorAngle=_currentFloor.maxFloorAngle-_currentFloor.baseRotateAngle,
-            _fromFloorHeight=this.currentFloor.y+this.fromFloorHeight;
-        if((Math.abs(this.yPosition)<=Math.abs(_fromFloorHeight))||(_currentFloor.floorAngle===0)){
-            this.node.y=this.yPosition;
-            this.node.x=this.xPosition;
+        if(this.isOnFloor){
+            var _currentFloor=this.currentFloor.getComponent('floor'),
+                floorRotate=new cc.RotateBy(_currentFloor.rotateDuration, _currentFloor.rotateAngle),
+                callback = cc.callFunc(this.getFloorAngle, this,_currentFloor),
+                _maxFloorAngle=_currentFloor.maxFloorAngle-_currentFloor.baseRotateAngle,
+                _fromFloorHeight=this.currentFloor.y+this.fromFloorHeight;
+            if((Math.abs(this.yPosition)<=Math.abs(_fromFloorHeight))||(_currentFloor.floorAngle===0)){
+                this.node.y=this.yPosition;
+                this.node.x=this.xPosition;
+            }else{
+            this.yPosition= _fromFloorHeight;
+            }
+            //控制floor的最大旋转角度
+            if((_currentFloor.floorAngle<_maxFloorAngle&&_currentFloor.floorAngle>-_maxFloorAngle)
+            ||(_currentFloor.floorAngle*_currentFloor.rotateAngle<=0)){
+                this.currentFloor.runAction(cc.sequence(floorRotate,callback));
+            }
         }else{
-           this.yPosition= _fromFloorHeight;
-        }
-        //控制floor的最大旋转角度
-        if((_currentFloor.floorAngle<_maxFloorAngle&&_currentFloor.floorAngle>-_maxFloorAngle)
-        ||(_currentFloor.floorAngle*_currentFloor.rotateAngle<=0)){
-            this.currentFloor.runAction(cc.sequence(floorRotate,callback));
+
         }
     },
 
@@ -102,4 +114,14 @@ cc.Class({
         var _currentFloor=currentFloor.getComponent("floor");
         _currentFloor.floorAngle=this.currentFloor.rotation;
     },
+
+    playerFall:function (distance){
+        this.isOnFloor=false;
+        var landX=this.currentFloor.rotation>=0?this.speed*(this.speedLevel+distance*this.jumpLevel):-this.speed*(this.speedLevel+distance*this.jumpLevel),
+            scene=this.node.getParent(),
+            landY=(scene.y-scene.height)-this.yPosition,
+            fallXMove=cc.moveBy(this.fallDuration,cc.p(landX,0)).easing(cc.easeCircleActionOut()),
+            fallYMove=cc.moveBy(this.fallDuration,cc.p(0,landY)).easing(cc.easeCircleActionIn());
+        this.node.runAction(cc.spawn(fallXMove,fallYMove));
+    }
 });
