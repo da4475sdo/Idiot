@@ -29,6 +29,7 @@ cc.Class({
         //初始化player node 位置
         this.xPosition=this.currentFloor.x;
         this.yPosition=this.currentFloor.y+this.fromFloorHeight;
+        this.currentFloor.getComponent("floor").isPlayerOn=true;
         //绑定重力感应事件
         cc.inputManager.setAccelerometerEnabled(true);
         cc.systemEvent.on(cc.SystemEvent.EventType.DEVICEMOTION, this.onDeviceMotionEvent, this);
@@ -44,7 +45,10 @@ cc.Class({
         if(playerToFloorCenterDis<(this.currentFloor.width+this.node.width)/2){
             this.groupMove(distance);
         }else{
-            this.isOnFloor&&this.playerFall(Math.abs(distance));
+            if(this.isOnFloor&&this.currentFloor.getComponent("floor").isPlayerOn){
+                this.playerFall(Math.abs(distance));
+                this.floorRest();
+            }
         }
     },
 
@@ -98,7 +102,7 @@ cc.Class({
                 this.node.y=this.yPosition;
                 this.node.x=this.xPosition;
             }else{
-            this.yPosition= _fromFloorHeight;
+                this.yPosition= _fromFloorHeight;
             }
             //控制floor的最大旋转角度
             if((_currentFloor.floorAngle<_maxFloorAngle&&_currentFloor.floorAngle>-_maxFloorAngle)
@@ -106,7 +110,20 @@ cc.Class({
                 this.currentFloor.runAction(cc.sequence(floorRotate,callback));
             }
         }else{
-
+            var playerNode=this.node,
+                playerNodeY=playerNode.y,
+                playerNodeX=playerNode.x,
+                playerWidth=playerNode.width,
+                floorNode=this.game.floorArray[Math.round(playerNodeY)],
+                floorWidth=floorNode&&floorNode.width;
+            if(floorNode&&this.currentFloor!=floorNode&&(playerNodeX<=floorNode.x+floorWidth/2&&playerNodeX>=floorNode.x-floorWidth/2)){
+                this.currentFloor=floorNode;
+                this.isOnFloor=true;
+                playerNode.stopAllActions();
+                this.xPosition=playerNodeX;
+                this.yPosition=playerNodeY;
+                this.currentFloor.getComponent("floor").isPlayerOn=true;
+            }
         }
     },
 
@@ -117,11 +134,17 @@ cc.Class({
 
     playerFall:function (distance){
         this.isOnFloor=false;
+        this.currentFloor.getComponent("floor").isPlayerOn=false;
         var landX=this.currentFloor.rotation>=0?this.speed*(this.speedLevel+distance*this.jumpLevel):-this.speed*(this.speedLevel+distance*this.jumpLevel),
             scene=this.node.getParent(),
             landY=(scene.y-scene.height)-this.yPosition,
             fallXMove=cc.moveBy(this.fallDuration,cc.p(landX,0)).easing(cc.easeCircleActionOut()),
             fallYMove=cc.moveBy(this.fallDuration,cc.p(0,landY)).easing(cc.easeCircleActionIn());
         this.node.runAction(cc.spawn(fallXMove,fallYMove));
-    }
+    },
+
+    floorRest:function (){
+        var floorRestRoration=cc.rotateTo(1,0);
+        this.currentFloor.runAction(floorRestRoration);
+    },
 });

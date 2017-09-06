@@ -5,13 +5,13 @@ cc.Class({
         xFloorPosition:0,
         yFloorPosition:0,
         floorAngle:0,
-        maxFloorAngle:0,
-        baseRotateAngle:1,
+        maxFloorAngle:30,
+        baseRotateAngle:15,
         rotateAngle:0,
-        baseRotateDuration:0,
-        rotateDuration:0,
+        baseRotateDuration:0.1,
+        rotateDuration:0.03,
         isPlayerOn:false,
-        floorSpeed:0,
+        floorSpeed:5,
     },
 
     // use this for initialization
